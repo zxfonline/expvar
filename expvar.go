@@ -25,21 +25,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"net/http"
 	"os"
 	"runtime"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/zxfonline/iptable"
-	"github.com/zxfonline/timefix"
+	"github.com/zxfonline/toolbox"
 )
 
 // Var is an abstract type for all exported variables.
@@ -455,7 +452,7 @@ func memstats() interface{} {
 
 func gcstats() interface{} {
 	w := new(bytes.Buffer)
-	PrintGCSummary(w)
+	toolbox.PrintGCSummary(w)
 	return w.String()
 }
 
@@ -464,47 +461,4 @@ func init() {
 	Publish("cmdline", Func(cmdline))
 	Publish("memstats", Func(memstats))
 	Publish("gcsummary", Func(gcstats))
-}
-
-// PrintGCSummary print gc information to io.Writer
-func PrintGCSummary(w io.Writer) {
-	memStats := &runtime.MemStats{}
-	runtime.ReadMemStats(memStats)
-	gcstats := &debug.GCStats{PauseQuantiles: make([]time.Duration, 100)}
-	debug.ReadGCStats(gcstats)
-
-	printGC(memStats, gcstats, w)
-}
-
-var startTime = time.Now()
-
-func printGC(memStats *runtime.MemStats, gcstats *debug.GCStats, w io.Writer) {
-
-	if gcstats.NumGC > 0 {
-		lastPause := gcstats.Pause[0]
-		elapsed := time.Now().Sub(startTime)
-		overhead := float64(gcstats.PauseTotal) / float64(elapsed) * 100
-		allocatedRate := float64(memStats.TotalAlloc) / elapsed.Seconds()
-
-		fmt.Fprintf(w, "NumGC:%d Pause:%s Pause(Avg):%s Overhead:%3.2f%% Alloc:%s Sys:%s Alloc(Rate):%s/s Histogram:%s %s %s \n",
-			gcstats.NumGC,
-			timefix.ShortTimeFormat(lastPause),
-			timefix.ShortTimeFormat(timefix.AvgTime(gcstats.Pause)),
-			overhead,
-			timefix.BytesFormat(memStats.Alloc),
-			timefix.BytesFormat(memStats.Sys),
-			timefix.BytesFormat(uint64(allocatedRate)),
-			timefix.ShortTimeFormat(gcstats.PauseQuantiles[94]),
-			timefix.ShortTimeFormat(gcstats.PauseQuantiles[98]),
-			timefix.ShortTimeFormat(gcstats.PauseQuantiles[99]))
-	} else {
-		// while GC has disabled
-		elapsed := time.Now().Sub(startTime)
-		allocatedRate := float64(memStats.TotalAlloc) / elapsed.Seconds()
-
-		fmt.Fprintf(w, "Alloc:%s Sys:%s Alloc(Rate):%s/s\n",
-			timefix.BytesFormat(memStats.Alloc),
-			timefix.BytesFormat(memStats.Sys),
-			timefix.BytesFormat(uint64(allocatedRate)))
-	}
 }
