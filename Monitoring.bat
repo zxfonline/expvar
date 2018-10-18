@@ -1,0 +1,2 @@
+expvarmon.exe -ports="http://192.168.1.211:61000,http://192.168.1.211:31000,http://192.168.1.211:21000,http://192.168.1.211:41000,http://192.168.1.211:11000" -vars="mem:memstats.Alloc,Goroutines,tracehour.Processor.Count,duration:tracehour.Processor.Mean,duration:tracehour.Processor.StdDev,duration:tracehour.Processor.Median,mem:memstats.Sys,mem:memstats.HeapAlloc,mem:memstats.HeapInuse,memstats.EnableGC,memstats.NumGC,duration:memstats.PauseNs,duration:Uptime" -i=2s
+
