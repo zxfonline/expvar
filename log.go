@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/zxfonline/fileutil"
@@ -23,11 +21,7 @@ var (
 
 //InitTraceLog 初始化跟踪日志
 func InitExpvarLog(filePath, fileNamePrefix string) {
-	appName := strings.Replace(os.Args[0], "\\", "/", -1)
-	_, name := path.Split(appName)
-	names := strings.Split(name, ".")
-	appName = names[0]
-
+	appName := fileutil.ExeName
 	fileNameFormat = fileutil.TransPath(filepath.Join(filePath, fileNamePrefix+"_"+appName+"_"+"%v"+".log"))
 
 	fileName := fmt.Sprintf(fileNameFormat, time.Now().Format("2006-01-02"))
