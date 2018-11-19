@@ -408,73 +408,10 @@ func DeBarDo(f func(KeyValue)) {
 	varKeysMu.RLock()
 	defer varKeysMu.RUnlock()
 	for _, k := range varKeys {
-		if k == "cmdline" || k == "memstats" ||
-			k == "gcsummary" ||
-			k == "Goroutines" || k == "Uptime" ||
-			k == "tracetotal" || k == "tracehour" || k == "traceminute" {
+		if isIgnoreVar(k) {
 			continue
 		}
 		val, _ := vars.Load(k)
 		f(KeyValue{k, val.(Var)})
 	}
-}
-
-func GetExpvarString() string {
-	var buf bytes.Buffer
-	buf.WriteString("{")
-	first := true
-	DeBarDo(func(kv KeyValue) {
-		if !first {
-			buf.WriteString(",")
-		}
-		first = false
-		buf.WriteString(fmt.Sprintf("%q: %s", kv.Key, kv.Value))
-	})
-
-	buf.WriteString("}")
-
-	return buf.String()
-}
-
-// func gcstats() interface{} {
-// 	w := new(bytes.Buffer)
-// 	toolbox.PrintGCSummary(w)
-// 	return w.String()
-// }
-
-var startTime = time.Now().UTC()
-
-func goroutines() interface{} {
-	return runtime.NumGoroutine()
-}
-
-// uptime is an expvar.Func compliant wrapper for uptime info.
-func uptime() interface{} {
-	uptime := time.Since(startTime)
-	return int64(uptime)
-}
-
-func traceTotal() interface{} {
-	return golangtrace.GetAllExpvarFamily(2)
-}
-func traceHour() interface{} {
-	return golangtrace.GetAllExpvarFamily(1)
-}
-func traceMinute() interface{} {
-	return golangtrace.GetAllExpvarFamily(0)
-}
-
-func init() {
-	http.HandleFunc("/debug/vars", expvarHandler)
-	Publish("cmdline", Func(cmdline))
-	Publish("memstats", Func(memstats))
-
-	// Publish("gcsummary", Func(gcstats))
-
-	Publish("Goroutines", Func(goroutines))
-	Publish("Uptime", Func(uptime))
-
-	Publish("tracetotal", Func(traceTotal))
-	Publish("tracehour", Func(traceHour))
-	Publish("traceminute", Func(traceMinute))
 }

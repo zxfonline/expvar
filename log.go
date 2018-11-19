@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/zxfonline/fileutil"
-	"github.com/zxfonline/gerror"
 	"github.com/zxfonline/timefix"
 )
 
@@ -61,6 +60,10 @@ func writeloop() {
 }
 
 func SaveExpvarLog() {
-	defer gerror.PrintPanicStack()
+	defer func() {
+		if x := recover(); x != nil {
+			fmt.Printf("Recovered %v\n.", x)
+		}
+	}()
 	expvarLog.Println(GetExpvarString())
 }
