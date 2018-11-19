@@ -105,8 +105,9 @@ func chanInfo(a interface{}) (bool, int, int) {
 }
 
 type ChanInfo struct {
-	Cap int
-	Len int
+	Cap  int
+	Len  int
+	Rate float64
 }
 
 func chanstats() interface{} {
@@ -115,7 +116,7 @@ func chanstats() interface{} {
 	mp := make(map[string]ChanInfo)
 	for k, v := range monitorChanMap {
 		_, mcap, mlen := chanInfo(v)
-		mp[k] = ChanInfo{Cap: mcap, Len: mlen}
+		mp[k] = ChanInfo{Cap: mcap, Len: mlen, Rate: float64(int64((float64(mlen) / float64(mcap) * 10000.0))) / 10000.0}
 	}
 	return mp
 }
